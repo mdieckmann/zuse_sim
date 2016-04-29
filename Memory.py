@@ -156,7 +156,6 @@ class Memory(object):
         self.memory_canvas.delete(self.ringbuffer_data[ring_ptr])
 
     def add_cell(self, ring_ptr, mem_ptr, direction):
-        h1, h2 = None
         if mem_ptr < 0 or mem_ptr >= self.memory_size:
             width = 0
             index = ''
