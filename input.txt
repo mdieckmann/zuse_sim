@@ -1,0 +1,11 @@
+# This is the input File, the Hashtag denotes a comment
+
+# Memory init. If a STORE/LOAD command is outside the range of the initial memory, additional '0' are added before the
+# program starts. It is therefore not necessary to define the cells in which the results of the program are stored.
+[1,1,0,0,1,1,1,1]
+
+# Commands, the tilde (~) is the 'not' operator:
+
+LOAD 0
+LOAD 0
+A AND B
