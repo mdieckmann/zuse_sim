@@ -80,10 +80,17 @@ class Cable(object):
 
     def set_flow(self, color):
         self.color = color
-        self.flow_done.set(0)
-        self.animate_flow()
-        if self.flow_done.get() == 0:
-            self.master.wait_variable(self.flow_done)
+        if color == 'black':
+            for line in self.lines:
+                for line_fragment in line:
+                    self.cable_canvas.itemconfigure(line_fragment, fill=self.color)
+            self.cable_canvas.itemconfigure(self.cable_switch, fill=self.color)
+            self.flow_done.set(1)
+        else:
+            self.flow_done.set(0)
+            self.animate_flow()
+            if self.flow_done.get() == 0:
+                self.master.wait_variable(self.flow_done)
 
     def rotate_switch(self, length, target_angle, op, speed, quadrant):
         current = self.cable_canvas.coords(self.cable_switch)

@@ -102,10 +102,16 @@ class Wheel(object):
 
     def set_flow(self, color):
         self.cable_color = color
-        self.flow_done.set(0)
-        self.animate_flow()
-        if self.flow_done.get() == 0:
-            self.master.wait_variable(self.flow_done)
+        if color == 'black':
+            for line in self.lines:
+                for line_fragment in line:
+                    self.wheel_canvas.itemconfigure(line_fragment, fill=self.cable_color)
+            self.flow_done.set(1)
+        else:
+            self.flow_done.set(0)
+            self.animate_flow()
+            if self.flow_done.get() == 0:
+                self.master.wait_variable(self.flow_done)
 
     def animate_wheel(self):
         if self.command_sequence_ptr < self.target:

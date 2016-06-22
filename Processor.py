@@ -20,7 +20,7 @@ class Processor(object):
         self.exit_height = None
         self.switches = [None] * 7
         self.switch_states = [0] * 7
-        self.target_states = [None] * 7
+        self.target_states = [0] * 7
         self.switch_text = [None] * 7
         self.switch_length = 8 * arrow_width
         self.animation_done = True
@@ -33,17 +33,33 @@ class Processor(object):
         self.iterator = iter(self.lines[self.current_line])
         self.cable_color = 'red'
 
-    def set_switch(self, target):
+    def set_switches(self, target):
         self.target_states = target
         self.switch_done.set(0)
         self.animate_switch()
 
+    def set_switch(self, A, B):
+        self.target_states[0] = A
+        self.target_states[1] = B
+        self.switch_done.set(0)
+        self.animate_switch()
+        if self.switch_done.get() == 0:
+            self.master.wait_variable(self.switch_done)
+
     def set_flow(self, color):
         self.cable_color = color
-        self.flow_done.set(0)
-        self.animate_flow()
-        if self.flow_done.get() == 0:
-            self.master.wait_variable(self.flow_done)
+        if color == 'black':
+            for line in self.lines:
+                for line_fragment in line:
+                    self.proc_canvas.itemconfigure(line_fragment, fill=self.cable_color)
+            for switch in self.switches:
+                self.proc_canvas.itemconfigure(switch, fill=self.cable_color)
+            self.flow_done.set(1)
+        else:
+            self.flow_done.set(0)
+            self.animate_flow()
+            if self.flow_done.get() == 0:
+                self.master.wait_variable(self.flow_done)
 
 
     def draw_processor(self, arrow_width):
@@ -332,7 +348,8 @@ class Processor(object):
                 self.current_line = 0
                 self.flow_done.set(1)
         elif self.current_line == 17:
-            self.switch_done.set(1)
+            self.current_line = 0
+            self.flow_done.set(1)
         elif self.current_line == 18:
             self.current_line = 3
         elif self.current_line == 19:

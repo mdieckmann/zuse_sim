@@ -63,7 +63,7 @@ class MemoryOp(object):
 
         self.switch_text = self.memop_canvas.create_text(end_x - 2 * arrow_width, (end_y_load + end_y_store) / 2,
                                                          text='0', anchor=Tk.E, font=('Helvetica', 10))
-        self.memop_canvas.create_text(end_x - 5 * arrow_width, (end_y_load + end_y_store) / 2, text='t1 = ',
+        self.memop_canvas.create_text(end_x - 5 * arrow_width, (end_y_load + end_y_store) / 2, text='t2 = ',
                                       anchor=Tk.E, font=('Helvetica', 10))
 
         self.memop_canvas.tag_raise(load_text)
@@ -92,10 +92,17 @@ class MemoryOp(object):
 
     def set_flow(self, color):
         self.cable_color = color
-        self.flow_done.set(0)
-        self.animate_flow()
-        if self.flow_done.get() == 0:
-            self.master.wait_variable(self.flow_done)
+        if color == 'black':
+            for line in self.lines:
+                for line_fragment in line:
+                    self.memop_canvas.itemconfigure(line_fragment, fill=self.cable_color)
+            self.memop_canvas.itemconfigure(self.memop_switch, fill=self.cable_color)
+            self.flow_done.set(1)
+        else:
+            self.flow_done.set(0)
+            self.animate_flow()
+            if self.flow_done.get() == 0:
+                self.master.wait_variable(self.flow_done)
 
 
     def create_line(self, start_width, start_height, end_width, end_height, seg_len_w, seg_len_h, index):

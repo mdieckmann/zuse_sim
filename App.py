@@ -35,6 +35,7 @@ class App(object):
         self.memory_op = MemoryOp.MemoryOp(master,self.canvas_width,self.canvas_height,arrow_width,border)
         self.cable = Cable.Cable(master,self.canvas_width,self.canvas_height,arrow_width,border,self.processor.entry_width,self.memory_op.entry_width,self.wheel.exit_height)
 
+
 ## TODO : MEANINGFUL EXCEPTIONS
         file_name = sys.argv[1]
         self.command_sequence = []
@@ -55,7 +56,7 @@ class App(object):
         input_file.close()
 
         self.run_app()
-        master.destroy()
+     #   master.destroy()
 
     def run_app(self):
         first = True
@@ -84,12 +85,32 @@ class App(object):
                 self.memory_command(1,int(command[6:]))
             elif re.match('LOAD [0-9]+$',command):
                 self.memory_command(0,int(command[5:]))
+            elif re.match('NOP', command):
+                self.nop_command()
             else:
                 print 'Invalid Command : ' + command
 
+    def nop_command(self):
+        self.cable.set_switch(0)
+        target = []
+        for bit in self.processor.switch_states:
+            target.append(bit)
+        target[2] = 0
+        self.processor.set_switches(target)
+        if self.cable.switch_done.get() == 0:
+            self.master.wait_variable(self.cable.switch_done)
+        if self.processor.switch_done.get() == 0:
+            self.master.wait_variable(self.processor.switch_done)
+        self.wheel.set_flow('red')
+        self.cable.set_flow('red')
+        self.processor.set_flow('red')
+        self.wheel.set_flow('black')
+        self.cable.set_flow('black')
+        self.processor.set_flow('black')
+
     def logical_command(self, A, B, opr):
         proc_switches = [self.register.A_state,self.register.B_state,1,opr,A,B,opr]
-        self.processor.set_switch(proc_switches)
+        self.processor.set_switches(proc_switches)
         self.cable.set_switch(0)
         if self.cable.switch_done.get() == 0:
             self.master.wait_variable(self.cable.switch_done)
@@ -110,6 +131,7 @@ class App(object):
                 self.register.set_register('A',1)
             else:
                 self.register.set_register('A',0)
+        self.processor.set_switch(self.register.A_state, self.register.B_state)
         self.wheel.set_flow('black')
         self.cable.set_flow('black')
         self.processor.set_flow('black')
@@ -127,23 +149,24 @@ class App(object):
         self.memory_op.set_flow('red')
         self.memory_op.toggle_blink()
         self.memory.set_target(index)
-        print 'mrp ' + str(opr)
         if opr == 0:
             #load sets pr = 1 and mem -> reg
             if self.register.pr_flag_state == 0:
-                print 'set a'
                 self.register.set_register('A',self.memory.memory[self.memory.memory_ptr])
-                print 'set flag'
+                #print 'set flag'
+                self.processor.set_switch(self.register.A_state, self.register.B_state)
                 self.register.set_flag(1)
                 print 'flag set'
             else:
                 self.register.set_register('B',self.memory.memory[self.memory.memory_ptr])
+                self.processor.set_switch(self.register.A_state, self.register.B_state)
         else:
             #store value in a to memory, clear flag and register
             self.memory.set_current_cell(self.register.A_state)
-            self.register.set_flag(0)
-            self.register.set_register('A',0)
+            self.register.set_register('A', 0)
             self.register.set_register('B',0)
+            self.processor.set_switch(self.register.A_state, self.register.B_state)
+            self.register.set_flag(0)
         self.wheel.set_flow('black')
         self.cable.set_flow('black')
         self.memory_op.set_flow('black')
