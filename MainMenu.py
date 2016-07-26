@@ -72,10 +72,10 @@ class MainMenu(object):
     def new_window(self,file_name,input_info,output_info,duration_estimate):
         self.newWindow = Tk.Toplevel(self.master)
 
-        #self.newWindow.attributes('-fullscreen', True)
-        #self.newWindow.geometry("{0}x{1}+0+0".format(self.newWindow.winfo_screenwidth(), self.newWindow.winfo_screenheight()))
+        self.newWindow.attributes('-fullscreen', True)
+        self.newWindow.geometry("{0}x{1}+0+0".format(self.newWindow.winfo_screenwidth(), self.newWindow.winfo_screenheight()))
 
-        self.newWindow.geometry("1024x768")
+        #self.newWindow.geometry("1024x768")
         self.newWindow.configure(bg="white")
 
         self.newWindow.update()
