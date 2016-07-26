@@ -122,11 +122,11 @@ class Register(object):
         if self.pr_flag_state < self.pr_flag_target and current_pos_text[1] < (self.b_box_coords[1] + self.b_box_coords[3]) / 2:
             self.register_canvas.coords(self.pr_box,current_pos_box[0],current_pos_box[1] + 1,current_pos_box[2],current_pos_box[3] + 1,current_pos_box[4],current_pos_box[5] + 1)
             self.register_canvas.coords(self.pr_flag,current_pos_text[0],current_pos_text[1] + 1)
-            self.master.after(20,self.move_flag)
+            self.master.after(3,self.move_flag)
         elif self.pr_flag_state > self.pr_flag_target and current_pos_text[1] > (self.a_box_coords[1] + self.a_box_coords[3]) / 2:
             self.register_canvas.coords(self.pr_box,current_pos_box[0],current_pos_box[1] - 1,current_pos_box[2],current_pos_box[3] - 1,current_pos_box[4],current_pos_box[5] - 1)
             self.register_canvas.coords(self.pr_flag,current_pos_text[0],current_pos_text[1] - 1)
-            self.master.after(20,self.move_flag)
+            self.master.after(3,self.move_flag)
         else:
             self.pr_flag_state = self.pr_flag_target
             self.flag_move_done.set(1)
@@ -154,14 +154,14 @@ class Register(object):
                 self.flag_toggle_done.set(1)
                 self.direction = 'FADE'
             else:
-                self.master.after(30, self.flag_color_toggle)
+                self.master.after(10, self.flag_color_toggle)
         elif self.direction == 'FADE':
             self.pr_flag_color += 0x011
             if self.pr_flag_color > 0xfbb:
                 self.flag_toggle_done.set(1)
                 self.direction = 'SOLIDIFY'
             else:
-                self.master.after(30, self.flag_color_toggle)
+                self.master.after(10, self.flag_color_toggle)
         color = '#' + str(hex(self.pr_flag_color))[2:5]
         self.register_canvas.itemconfigure(self.pr_box, fill=color)
 
@@ -181,11 +181,11 @@ class Register(object):
     def animate_flow(self):
         try:
             self.register_canvas.itemconfigure(next(self.iterator), fill=self.cable_color)
-            self.master.after(20, self.animate_flow)
+            self.master.after(3, self.animate_flow)
         except StopIteration:
             self.next_line()
             if self.flow_done.get() == 0:
-                self.master.after(20, self.animate_flow)
+                self.master.after(3, self.animate_flow)
 
     def next_line(self):
         if self.current_line == 0:

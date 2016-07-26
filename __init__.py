@@ -1,18 +1,5 @@
-import Tkinter as Tk
-import App
 
-root = Tk.Tk()
-#w, h = root.winfo_screenwidth(), root.winfo_screenheight()
-#root.geometry("%dx%d+0+0" % (w, h))
-root.geometry("1024x768")
-
-#root.attributes('-fullscreen', True)
-#root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
-
-root.configure(bg="white")
-root.update()
-
-app = App.App(root)
-
-root.mainloop()
-# root.destroy() # optional; see description below
+__author__ = "Max Dieckmann"
+__maintainer__ = __author__
+__email__ = "dieckmann@zedat.fu-berlin.de"
+__description__ = "A simulation of the 'logistische Maschine'"

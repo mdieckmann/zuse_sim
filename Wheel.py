@@ -118,22 +118,22 @@ class Wheel(object):
             next_cell = self.cycle(self.ringbuffer_ptr, (self.ringbuffer_ptr - 1) % len(self.ringbuffer_box))
 
             if (next_cell[1] + next_cell[3]) / 2 < self.height / 2:
-                self.master.after(10, self.animate_wheel)
+                self.master.after(1, self.animate_wheel)
             else:
                 self.reset_animation()
                 # reset vars, delete/insert
-                self.master.after(50, self.animate_wheel)
+                self.master.after(1, self.animate_wheel)
         else:
             self.wheel_done.set(1)
 
     def animate_flow(self):
         try:
             self.wheel_canvas.itemconfigure(next(self.iterator), fill=self.cable_color)
-            self.master.after(20, self.animate_flow)
+            self.master.after(3, self.animate_flow)
         except StopIteration:
             self.next_line()
             if self.flow_done.get() == 0:
-                self.master.after(20, self.animate_flow)
+                self.master.after(3, self.animate_flow)
 
     def next_line(self):
         if self.current_line == 0:

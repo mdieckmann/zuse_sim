@@ -5,7 +5,8 @@ import operator
 
 class Cable(object):
     def __init__(self, master, width, height, arrow_width, border, exit_width_processor, exit_width_memop,
-                 entry_height_wheel):
+                 entry_height_wheel,app):
+        self.app = app
         self.height = height * 3 / 17
         self.width = width * 10 / 18
         self.master = master
@@ -60,6 +61,19 @@ class Cable(object):
                                       anchor=Tk.E)
         self.switch_text = self.cable_canvas.create_text(switch_coords[0] - 6 * arrow_width,
                                                          switch_coords[1] + arrow_width, text='0', anchor=Tk.E)
+
+     #   self.quit_button = Tk.Button(master,text = 'QUIT',width = 25, command = self.close_windows)
+    #    self.quit_button.grid(row=1, column=5, rowspan=1, columnspan=2)
+   #     self.start_button = Tk.Button(master,text = 'START',width = 25, command = self.start_animation)
+  #      self.start_button.grid(row=1, column=7, rowspan=1, columnspan=2)
+
+
+#    def close_windows(self):
+#        self.master.destroy()
+
+#    def start_animation(self):
+#        print 'START'
+ #       self.app.run_app()
 
     def create_line(self, start_width, start_height, end_width, end_height, seg_len_w, seg_len_h, index):
         i = 0
@@ -162,15 +176,15 @@ class Cable(object):
 
         if not self.switch_animation_done:
             self.switch_animation_done = True
-            self.master.after(10, self.animate_switch)
+            self.master.after(5, self.animate_switch)
         else:
             self.switch_done.set(1)
 
     def animate_flow(self):
         try:
             self.cable_canvas.itemconfigure(next(self.iterator), fill=self.color)
-            self.master.after(20, self.animate_flow)
+            self.master.after(3, self.animate_flow)
         except StopIteration:
             self.next_line()
             if self.flow_done.get() == 0:
-                self.master.after(20, self.animate_flow)
+                self.master.after(3, self.animate_flow)

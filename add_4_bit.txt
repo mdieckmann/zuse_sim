@@ -1,0 +1,143 @@
+# This is the input File, the Hashtag denotes a comment
+
+# Memory init. If a STORE/LOAD command is outside the range of the initial memory, additional '0' are added before the
+# program starts. It is therefore not necessary to define the cells in which the results of the program are stored.
+[0,0,0,0,0,0,0,0]
+
+# Commands, the tilde (~) is the 'not' operator:
+# 0-3 is x, 4-7 is y. 8 is tmp, 9 is carry, 10-14 is result
+
+LOAD 0
+LOAD 4
+A AND ~B
+STORE 8
+LOAD 0
+LOAD 4
+~A AND B
+LOAD 8
+A OR B
+STORE 10
+
+LOAD 0
+LOAD 4
+A AND B
+STORE 9
+#end of bit 1
+
+LOAD 1
+LOAD 5
+A AND ~B
+STORE 8
+LOAD 1
+LOAD 5
+~A AND B
+LOAD 8
+A OR B
+STORE 11
+LOAD 11
+LOAD 9
+A AND ~B
+STORE 8
+LOAD 11
+LOAD 9
+~A AND B
+LOAD 8
+A OR B
+STORE 11
+
+LOAD 1
+LOAD 5
+A AND B
+STORE 8
+LOAD 1
+LOAD 9
+A AND B
+LOAD 8
+A OR B
+STORE 8
+LOAD 5
+LOAD 9
+A AND B
+LOAD 8
+A OR B
+STORE 9
+#end of bit 2
+
+
+LOAD 2
+LOAD 6
+A AND ~B
+STORE 8
+LOAD 2
+LOAD 6
+~A AND B
+LOAD 8
+A OR B
+STORE 12
+LOAD 12
+LOAD 9
+A AND ~B
+STORE 8
+LOAD 12
+LOAD 9
+~A AND B
+LOAD 8
+A OR B
+STORE 12
+
+LOAD 2
+LOAD 6
+A AND B
+STORE 8
+LOAD 2
+LOAD 9
+A AND B
+LOAD 8
+A OR B
+STORE 8
+LOAD 6
+LOAD 9
+A AND B
+LOAD 8
+A OR B
+STORE 9
+#end of bit 3
+
+LOAD 3
+LOAD 7
+A AND ~B
+STORE 8
+LOAD 3
+LOAD 7
+~A AND B
+LOAD 8
+A OR B
+STORE 13
+LOAD 13
+LOAD 9
+A AND ~B
+STORE 8
+LOAD 13
+LOAD 9
+~A AND B
+LOAD 8
+A OR B
+STORE 13
+
+LOAD 3
+LOAD 7
+A AND B
+STORE 8
+LOAD 3
+LOAD 9
+A AND B
+LOAD 8
+A OR B
+STORE 8
+LOAD 7
+LOAD 9
+A AND B
+LOAD 8
+A OR B
+STORE 14
+#end of bit 4 & 5

@@ -183,7 +183,7 @@ class MemoryOp(object):
 
         if not self.switch_animation_done:
             self.switch_animation_done = True
-            self.master.after(10, self.animate_switch)
+            self.master.after(5, self.animate_switch)
         else:
             self.switch_done.set(1)
 
@@ -206,8 +206,8 @@ class MemoryOp(object):
     def animate_flow(self):
         try:
             self.memop_canvas.itemconfigure(next(self.iterator), fill=self.cable_color)
-            self.master.after(20, self.animate_flow)
+            self.master.after(3, self.animate_flow)
         except StopIteration:
             self.next_line()
             if self.flow_done.get() == 0:
-                self.master.after(20, self.animate_flow)
+                self.master.after(3, self.animate_flow)

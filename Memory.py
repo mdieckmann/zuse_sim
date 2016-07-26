@@ -2,6 +2,7 @@ import Tkinter as Tk
 import operator
 import re
 
+
 class Memory(object):
     def __init__(self, master, width, height, border):
         self.height = height * 15 / 17
@@ -32,28 +33,58 @@ class Memory(object):
         self.memory = []
         self.memory_ptr = 0
         self.ringbuffer_ptr = 9
-        # fill memory from file
         self.memory_size = 0
         self.shrunk = False
         self.enlarged = False
         self.target = 0
+        self.color = None
+        self.direction = None
+        self.color_blink_done = Tk.BooleanVar()
         self.done = Tk.BooleanVar()
 
-    def init(self,preset,command_sequence):
-        size = len(preset)
+    def init(self, preset, command_sequence):
+        self.additional_memory_size = len(preset)
         for command in command_sequence:
-            if re.match('STORE [0-9]+',command) and int(command[6:]) > size:
-                size = int(command[6:])
-            elif re.match('LOAD [0-9]+',command) and int(command[5:]) > size:
-                size = int(command[5:])
-        self.init_memory(preset,size)
+            if re.match('STORE [0-9]+', command) and int(command[6:]) > self.additional_memory_size:
+                self.additional_memory_size = int(command[6:])
+            elif re.match('LOAD [0-9]+', command) and int(command[5:]) > self.additional_memory_size:
+                self.additional_memory_size = int(command[5:])
+        self.init_memory(preset)
         self.init_ringbuffer()
+        self.memory_canvas.tag_bind('BIND', '<ButtonPress-1>', self.flip_memory_cell)
+        self.memory_canvas.bind_all('<ButtonPress-5>', self.scroll_down)
+        self.memory_canvas.bind_all('<ButtonPress-4>', self.scroll_up)
 
-    def init_memory(self,preset,size):
+    def init_memory(self, preset):
         for entry in preset:
             self.memory.append(int(entry))
         self.memory_size = len(self.memory)
-        while self.memory_size < size + 1:
+        self.memory_ptr = self.memory_size / 2
+
+    def init_additional_memory(self):
+        i = self.memory_size - self.memory_ptr
+        while self.memory_size < self.additional_memory_size + 1:
+            if i < 9:
+                width = 1
+                index = 'x%d' % self.memory_size
+                data = '0'
+                next_cell = self.memory_canvas.coords(self.ringbuffer_box[(self.ringbuffer_ptr - i + 1) % len(self.ringbuffer_box)])
+                if i == 8:
+                    h1 = self.height * -3 / 30
+                else:
+                    prev_cell = self.memory_canvas.coords(self.ringbuffer_box[(self.ringbuffer_ptr - i - 1) % len(self.ringbuffer_box)])
+                    h1 = prev_cell[3]
+                h2 = next_cell[1]
+                self.ringbuffer_box[self.ringbuffer_ptr - i] = self.memory_canvas.create_rectangle(self.width * 3 / 12, h1,
+                                                                                                   self.width * 9 / 12, h2,
+                                                                                                   tags='MEM', width=width)
+                self.ringbuffer_index[self.ringbuffer_ptr - i] = self.memory_canvas.create_text(self.width * 9 / 12, h2,
+                                                                                                anchor=Tk.SE, text=index, tags='MEM',
+                                                                                                font=('Helvetica', self.fs_ix_up[0]))
+                self.ringbuffer_data[self.ringbuffer_ptr - i] = self.memory_canvas.create_text(self.width / 2, (h2 + h1) / 2,
+                                                                                               text=data, tags=('MEM','BIND'),
+                                                                                               font=('Helvetica', self.fs_data_up[0]))
+                i += 1
             self.memory.append(0)
             self.memory_size += 1
 
@@ -69,24 +100,26 @@ class Memory(object):
                                                                   tags='MEM',
                                                                   font=('Helvetica', self.fs_ix_down[0]))
         self.ringbuffer_data[9] = self.memory_canvas.create_text(self.width / 2, self.height / 2,
-                                                                 text='%d' % self.memory[self.memory_ptr], tags='MEM',
+                                                                 text='%d' % self.memory[self.memory_ptr], tags=('MEM','BIND'),
                                                                  font=('Helvetica', self.fs_data_down[0]))
 
         self.memory_ptr += 1
         for i in range(8, 0, -1):
-            if not self.memory_ptr < self.memory_size:
+            if self.memory_ptr >= self.memory_size:
                 width = 0
                 text_ix = ''
                 text_data = ''
+                tags = 'MEM'
             else:
                 width = 1
                 text_ix = 'x%d' % self.memory_ptr
                 text_data = '%d' % self.memory[self.memory_ptr]
+                tags=('MEM','BIND')
             self.ringbuffer_box[i] = self.memory_canvas.create_rectangle(self.width * 3 / 12,
                                                                          self.height * (2 * i - 5) / 30,
                                                                          self.width * 9 / 12,
                                                                          self.height * (2 * i - 3) / 30,
-                                                                         tags='MEM',width=width)
+                                                                         tags='MEM', width=width)
             self.ringbuffer_index[i] = self.memory_canvas.create_text(self.width * 9 / 12,
                                                                       self.height * (2 * i - 3) / 30,
                                                                       anchor=Tk.SE, text=text_ix,
@@ -94,26 +127,37 @@ class Memory(object):
                                                                       font=('Helvetica', self.fs_ix_up[0]))
             self.ringbuffer_data[i] = self.memory_canvas.create_text(self.width / 2, self.height * (2 * i - 4) / 30,
                                                                      text=text_data,
-                                                                     tags='MEM',
+                                                                     tags=tags,
                                                                      font=('Helvetica', self.fs_data_up[0]))
             self.memory_ptr += 1
-
+        self.memory_ptr = 0
+        print self.memory_size / 2
         for i in range(18, 9, -1):
+            if (i-9) > self.memory_size / 2:
+                width = 0
+                text_ix = ''
+                text_data = ''
+                tags = 'MEM'
+            else:
+                width = 1
+                text_ix = 'x%d' % self.memory_ptr
+                text_data = '%d' % self.memory[self.memory_ptr]
+                tags=('MEM','BIND')
+                self.memory_ptr += 1
+
             self.ringbuffer_box[i] = self.memory_canvas.create_rectangle(self.width * 3 / 12,
                                                                          self.height * (2 * i - 3) / 30,
                                                                          self.width * 9 / 12,
                                                                          self.height * (2 * i - 1) / 30,
-                                                                         tags='MEM', width=0)
+                                                                         tags='MEM', width=width)
             self.ringbuffer_index[i] = self.memory_canvas.create_text(self.width * 9 / 12,
                                                                       self.height * (2 * i - 1) / 30,
-                                                                      anchor=Tk.SE, text='', tags='MEM',
+                                                                      anchor=Tk.SE, text=text_ix, tags='MEM',
                                                                       font=('Helvetica', self.fs_ix_up[0]))
-            self.ringbuffer_data[i] = self.memory_canvas.create_text(self.width / 2, self.height * (2 * i + 1) / 30,
-                                                                     text='', tags='MEM',
+            self.ringbuffer_data[i] = self.memory_canvas.create_text(self.width / 2, self.height * (2 * i - 2) / 30,
+                                                                     text=text_data, tags=tags,
                                                                      font=('Helvetica', self.fs_data_up[0]))
-            self.memory_ptr += 1
-
-        self.memory_ptr = 0
+        self.memory_ptr = self.memory_size / 2
 
     def set_target(self, target):
         self.target = target
@@ -125,25 +169,50 @@ class Memory(object):
     def set_current_cell(self, data):
         self.memory_canvas.itemconfigure(self.ringbuffer_data[self.ringbuffer_ptr], text=data)
         self.memory[self.memory_ptr] = int(data)
+        self.toggle_blink()
+
+    def toggle_blink(self):
+        self.direction = 'SOLIDIFY'
+        self.color = 0xfff
+        self.color_blink_done.set(0)
+        self.animate_color_blink()
+        if self.color_blink_done.get() == 0:
+            self.master.wait_variable(self.color_blink_done)
+
+    def animate_color_blink(self):
+        color = '#' + str(hex(self.color))[2:5]
+        self.memory_canvas.itemconfigure(self.ringbuffer_box[self.ringbuffer_ptr], fill=color)
+        if self.direction == 'SOLIDIFY':
+            self.color -= 0x101
+            if self.color <= 0x9f9:
+                self.direction = 'FADE'
+            self.master.after(30, self.animate_color_blink)
+
+        elif self.direction == 'FADE':
+            self.color += 0x101
+            if self.color > 0xfff:
+                self.color_blink_done.set(1)
+            else:
+                self.master.after(30, self.animate_color_blink)
 
     def animate(self):
         if self.memory_ptr > self.target:
             next_cell = self.cycle('UP', self.ringbuffer_ptr, (self.ringbuffer_ptr + 1) % len(self.ringbuffer_box))
             if (next_cell[1] + next_cell[3]) / 2 > self.height / 2:
-                self.master.after(10, self.animate)
+                self.master.after(1, self.animate)
             else:
                 self.reset_animation('UP')
                 # reset vars, delete/insert
-                self.master.after(30, self.animate)
+                self.master.after(1, self.animate)
         elif self.memory_ptr < self.target:
             next_cell = self.cycle('DOWN', self.ringbuffer_ptr, (self.ringbuffer_ptr - 1) % len(self.ringbuffer_box))
 
             if (next_cell[1] + next_cell[3]) / 2 < self.height / 2:
-                self.master.after(10, self.animate)
+                self.master.after(1, self.animate)
             else:
                 self.reset_animation('DOWN')
                 # reset vars, delete/insert
-                self.master.after(30, self.animate)
+                self.master.after(1, self.animate)
         else:
             print 'DONE'
             self.done.set(1)
@@ -197,7 +266,7 @@ class Memory(object):
                                                                          anchor=Tk.SE, text=index, tags='MEM',
                                                                          font=('Helvetica', self.fs_ix_up[0]))
         self.ringbuffer_data[ring_ptr] = self.memory_canvas.create_text(self.width / 2, (h2 + h1) / 2,
-                                                                        text=data, tags='MEM',
+                                                                        text=data, tags=('MEM','BIND'),
                                                                         font=('Helvetica', self.fs_data_up[0]))
 
     def resize_text(self, text, target, direction, up, down, x0, x1, y0, y1):
@@ -283,3 +352,30 @@ class Memory(object):
                 self.memory_canvas.coords(self.ringbuffer_box[ptr], prev_box[0], prev_box[3], prev_box[2], next_box[1])
             return True
         return False
+
+    def scroll_down(self,event):
+        self.memory_canvas.unbind_all('<ButtonPress-4>')
+        if self.memory_ptr > 0:
+            target = self.memory_ptr - 1
+            self.set_target(target)
+        self.memory_canvas.bind_all('<ButtonPress-4>', self.scroll_up)
+
+    def scroll_up(self,event):
+        self.memory_canvas.unbind_all('<ButtonPress-5>')
+        if self.memory_ptr < self.memory_size -1:
+            target = self.memory_ptr + 1
+            self.set_target(target)
+        self.memory_canvas.bind_all('<ButtonPress-5>', self.scroll_down)
+
+    def flip_memory_cell(self, event):
+
+        if self.memory_canvas.itemcget(Tk.CURRENT,'text') == '0':
+            text = '1'
+        else:
+            text = '0'
+        self.memory_canvas.itemconfigure(Tk.CURRENT,text=text)
+        id_current = self.memory_canvas.find_withtag(Tk.CURRENT)[0]
+        id_selected = self.ringbuffer_data[self.ringbuffer_ptr]
+        diff = self.ringbuffer_data.index(id_current) - self.ringbuffer_data.index(id_selected)
+        self.memory[self.memory_ptr - diff] = int(text)
+        print self.memory

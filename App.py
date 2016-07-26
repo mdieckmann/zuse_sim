@@ -9,17 +9,18 @@ import Cable
 import Processor
 import Memory
 import MemoryOp
-import time
+import Controls
 import sys
 import re
 
 class App(object):
 
-    def __init__(self, master):
+    def __init__(self, master,file_name,input_info,output_info,duration_estimate):
         self.master = master
         border_width = 15
         self.canvas_width = master.winfo_width()
         self.canvas_height = master.winfo_height()
+        self.output_info = output_info
         arrow_width = self.canvas_height / 200
         border = 0
 
@@ -33,11 +34,12 @@ class App(object):
         self.register = Register.Register(master,self.canvas_width,self.canvas_height,border,self.processor.exit_height,arrow_width)
         self.memory = Memory.Memory(master,self.canvas_width,self.canvas_height,border)
         self.memory_op = MemoryOp.MemoryOp(master,self.canvas_width,self.canvas_height,arrow_width,border)
-        self.cable = Cable.Cable(master,self.canvas_width,self.canvas_height,arrow_width,border,self.processor.entry_width,self.memory_op.entry_width,self.wheel.exit_height)
+        self.cable = Cable.Cable(master,self.canvas_width,self.canvas_height,arrow_width,border,self.processor.entry_width,self.memory_op.entry_width,self.wheel.exit_height,self)
+        self.controls = Controls.Controls(master,self.canvas_width,self.canvas_height,self,input_info,duration_estimate)
 
 
 ## TODO : MEANINGFUL EXCEPTIONS
-        file_name = sys.argv[1]
+#        file_name = sys.argv[1]
         self.command_sequence = []
         memory_preset = []
         input_file = open(file_name,'r')
@@ -55,10 +57,13 @@ class App(object):
 
         input_file.close()
 
-        self.run_app()
+     #   self.run_app()
      #   master.destroy()
 
     def run_app(self):
+        self.memory.memory_canvas.tag_unbind('BIND','<ButtonPress-1>')
+        self.memory.memory_canvas.unbind_all('<ButtonPress-4>')
+        self.memory.memory_canvas.unbind_all('<ButtonPress-5>')
         first = True
         for command in self.command_sequence:
             if not first:
@@ -89,6 +94,9 @@ class App(object):
                 self.nop_command()
             else:
                 print 'Invalid Command : ' + command
+        self.memory.memory_canvas.bind_all('<ButtonPress-5>', self.memory.scroll_down)
+        self.memory.memory_canvas.bind_all('<ButtonPress-4>', self.memory.scroll_up)
+        self.controls.info_text.configure(text='Done! \n Use the mouse wheel to look at the memory. The results are in ' + self.output_info +  '\nClose the window to select a different program.')
 
     def nop_command(self):
         self.cable.set_switch(0)
