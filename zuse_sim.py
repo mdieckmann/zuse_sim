@@ -1,3 +1,4 @@
+#!/usr/bin/python2
 import Tkinter as Tk
 import MainMenu
 
